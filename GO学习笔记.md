@@ -929,9 +929,23 @@ for {
     //        },
     //    }
 
-    // 9、字段提升，在8的基础上
-	var 
-	
+    // 9、字段提升，如果是结构体中有匿名的结构体类型字段，则该匿名结构体里的字段就称为提升字段。
+	//  这是因为提升字段就像是属于外部结构体一样，可以用外部结构体直接访问
+	//  如果有字段一样的，优先用自己的
+	// 定义
+    //type Person struct {
+    //        Name string    //  如果有字段一样的，优先用自己的 
+    //        Age int
+    //        Hobby       // 该字段是匿名结构体
+    //    }
+    //type Hobby struct {
+    //        HobbyName string
+	//        // Name string    //  如果有字段一样的
+    //    }
+    
+    // 使用
+	//fmt.Println(per.Name)
+    //fmt.Println(per.HobbyName)
 ```
 
 
