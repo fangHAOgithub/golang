@@ -768,7 +768,7 @@ for {
 ```
 
 
-# 三、可变参数函数，map，指针，结构体
+# 三、可变参数函数，map，指针，结构体，方法
 ---
 ### 1 可变参数函数
 
@@ -849,6 +849,8 @@ for {
 * 匿名结构体（定义在内部（函数，结构体），只使用一次，没有名字）
 * 访问和修改结构体字段，通过 `.` 访问，大小写敏感
 * 匿名字段（字段没有名字，只有类型），匿名字段类型就是字段名，所有类型不能重复
+* 结构体相等性，结构体是值类型。如果它的每一个字段都是可比较的，则该结构体也是可比较的。如果两个结构体变量的对应字段相等，则这两个变量也是相等的。
+* 如果结构体包含不可比较的字段，则结构体变量也不可比较。
 ```go
     // 1、定义
     //type 类型名 struct {
@@ -946,7 +948,136 @@ for {
     // 使用
 	//fmt.Println(per.Name)
     //fmt.Println(per.HobbyName)
+	
+	// 10、导出结构体和字段 **大写字母开头**,在外部包可以使用
+	
+	
 ```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+---
+### 方法
+* 方法其实就是一个函数，在 func 这个关键字和方法名中间加入了一个特殊的接收器类型。
+* 接收器可以是结构体类型或者是非结构体类型。接收器是可以在方法的内部访问的。
+```go
+创建了一个接收器类型为 Type 的方法 methodName
+func (t Type) methodName(parameter list) {
+}
+```
+* 指针接收器与值接收器，想改原来的，就用指针，不想改原来的就用值（指针用的多）
+* 不管是值还是指针来调用，只要是值类型接收器，改的就是新的，只要是指针类型接收器，改的是原来的
+* **值接收器**，可以用值来调，也可以用指针来调，函数的值参数，只能**传值**
+* **指针接收器**，可以用值来调，也可以用指针来调，函数的指针参数，只能**接收指针**
+* 
+
+```go
+    // 1、简单定义和使用
+	// 定义
+    //type Person2 struct {
+    //    Name string
+    //    Age int
+    //}
+    //定义一个方法  : (p Person2) 绑定给了Person2结构体的对象，在方法中使用值接收器
+	//func (p Person2) printName()  {
+    //   //在方法内可以使用p
+    //   fmt.Println(p.Name)
+    //}
+	// 假如使用函数方式，需要手动传值，在函数中使用值参数
+    //func printName(p Person2)  {
+    //	fmt.Println(p.Name)
+    //}
+    // 使用1，使用方法
+    //per := Person2{}
+    //per.Name = "fanghao"
+    //per.printName()   // fanghao
+    // 使用2，使用函数，需要手动传值
+    // 假如使用函数方式，需要手动传值
+    //func printName(p Person2)  {
+    //	fmt.Println(p.Name)
+    //}
+    //per1 := Person2{Name: "FANGHAO"}
+    //printName(per1)		//需要手动传值
+	
+	// 2、指针接收器与值接收器，改值
+    //修改名字，值接收器
+    //func (p Person2) changeName(name string)  {
+    //  p.Name=name
+    //  fmt.Println(p)
+    //}
+    //per1 := Person2{Name: "FANGHAO"}
+    //per1.changeName("GGGG")
+    //fmt.Println(per1)     //{FANGHAO 0}，没有改
+    //修改名字，指针接收器
+    //func (p *Person2) changeName(name string)  {
+    //  p.Name=name     // (*p).Name=name ,解引用
+    //  fmt.Println(p)
+    //}
+    //per1 := Person2{Name: "FANGHAO"}
+    //per1.changeName("GGGG")
+    //fmt.Println(per1)     //{GGGG 0}，使用指针会被改
+	
+	// 匿名字段的方法（方法提升）
+    //type Person2 struct {
+    //	Name string
+    //	Age int
+    //	Hobby  //匿名字段
+    //}
+    //type Hobby struct {
+    //	Name string
+    //}
+    ////给结构体绑定方法
+    //func (p Person2)printName()  {
+    //	fmt.Println(p.Name)
+    //}
+    //func (h Hobby)printHobbyName()  {
+    ////func (h Hobby)printName()  {    // 方法名重了的话，优先用自己的
+    //	fmt.Println(h.Name)
+    //}
+	// 使用
+    //per1 := Person2{Name: "fanghao",Age: 18,Hobby:Hobby{Name: "足球"}}
+    //per1.printHobbyName()     //Hobby是匿名字段，但是可以直接访问到它的方法，方法提升
+    //per1.printName()
+	// 方法名重了的话，优先用自己的，要访问必须指名道姓
+	//per1.Hobby.printHobbyName()
+	
+	
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
