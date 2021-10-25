@@ -954,26 +954,6 @@ for {
 	
 ```
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 ---
 ### 方法
 * 方法其实就是一个函数，在 func 这个关键字和方法名中间加入了一个特殊的接收器类型。
@@ -987,7 +967,29 @@ func (t Type) methodName(parameter list) {
 * 不管是值还是指针来调用，只要是值类型接收器，改的就是新的，只要是指针类型接收器，改的是原来的
 * **值接收器**，可以用值来调，也可以用指针来调，函数的值参数，只能**传值**
 * **指针接收器**，可以用值来调，也可以用指针来调，函数的指针参数，只能**接收指针**
-* 
+
+##### 注意事项
+
+* 给非结构体绑定方法，不允许给内置的类型绑定
+```go
+    //以下不允许
+    //func (i int) add()  {
+    //	i += 1
+    //}
+    //var b = 5
+    //b.add()
+```
+* 自定义类型，运算只能和自定义类型的运算，即使`type Newint int`, Newint 类型也不阔以和 int 类型进行运算，需强制类型转换
+```go
+    //type Newint int
+    ////var a Myint =10
+    //var b =11
+    //fmt.Println(a+b)  //类型不匹配
+    //c:=a+Myint(b)
+    //fmt.Println(a+Myint(b))  //类型匹配
+    //d:=int(a)+b
+    //fmt.Println(int(a)+b)  //类型匹配
+```
 
 ```go
     // 1、简单定义和使用
@@ -1035,7 +1037,7 @@ func (t Type) methodName(parameter list) {
     //per1.changeName("GGGG")
     //fmt.Println(per1)     //{GGGG 0}，使用指针会被改
 	
-	// 匿名字段的方法（方法提升）
+	// 3、匿名字段的方法（方法提升）
     //type Person2 struct {
     //	Name string
     //	Age int
@@ -1059,7 +1061,87 @@ func (t Type) methodName(parameter list) {
 	// 方法名重了的话，优先用自己的，要访问必须指名道姓
 	//per1.Hobby.printHobbyName()
 	
-	
+	// 4、在方法中使用值接收器 与 在函数中使用值参数
+    //type Person2 struct {
+    //	Name string
+    //	Age int
+    //}
+    ////在方法中使用值接收器
+    //func (p Person2)printName()  {
+    //	fmt.Println(p.Name)
+    //}
+    //func (p Person2)changeName(name string)  {
+    //	p.Name=name
+    //	fmt.Println(p)
+    //}
+    ////在函数中使用值参数
+    //func printName(p Person2)  {
+    //	fmt.Println(p.Name)
+    //}
+    // 使用1，可以传值
+    //per1:=Person2{Name: "fanghao"}
+    //per1.printName()
+    //printName(per1)
+	// 使用2，可以传指针
+    //per1:=&Person2{Name: "fanghao"}  //per1是个指针
+    //per1.printName()
+    //printName(*per1)
+    // 测试改值
+    //per1:=&Person2{Name: "fanghao"}  //per1是个指针
+    //per1.changeName("fanghao55523")   // {fanghao55523 0}
+    //fmt.Println(per1)                 // &{fanghao 0} 原来的值没有被改
+
+    // 5、在方法中使用指针收器 与 在函数中使用指针参数
+    //type Person2 struct {
+    //	Name string
+    //	Age int
+    //}
+    ////在方法中使用值接收器
+    //func (p *Person2)printName()  {
+    //	fmt.Println(p.Name)
+    //}
+    //func (p *Person2)changeName(name string)  {
+    //	p.Name=name
+    //	fmt.Println(p)
+    //}
+    ////在函数中使用指针参数
+    //func printName(p *Person2)  {
+    //	//fmt.Println((*p).Name)
+    //	fmt.Println(p.Name)
+    //}
+    // 使用1，值可以来调用
+    //per1:=Person2{Name: "fanghao"}
+    //per1.printName()  //值可以来调用
+    //printName(&per1)
+    // 使用2，指针可以来调用
+    //per1:=&Person2{Name: "fanghao"}
+    //per1.printName()  //指针可以来调用
+    //printName(per1)
+    // 测试改值，值传入
+    //per1:=Person2{Name: "fanghao"}
+    //per1.changeName("fanghao55523")   // &{fanghao55523 0}
+    //fmt.Println(per1)                 // {fanghao55523 0}
+    // 测试改值，指针传入
+    //per1:=&Person2{Name: "fanghao"}
+    //per1.changeName("fanghao55523")   // &{fanghao55523 0}
+    //fmt.Println(per1)                 // &{fanghao55523 0}
+
+	// 6、非结构体上绑定方法
+    //type Newint int   //自定义类型Newint
+    //
+    //func (n *Newint) AddOne() Newint {
+    //	(*n) = (*n) + 1
+    //	return (*n)
+    //}
+	// 使用
+    //var a Newint = 10
+    //fmt.Println(a)    // 10
+    //a.AddOne()
+    //a.AddOne()
+    //a.AddOne()
+    //a.AddOne()
+    //fmt.Println(a)    // 14
+
 ```
 
 
