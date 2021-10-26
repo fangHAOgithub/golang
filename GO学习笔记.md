@@ -1158,6 +1158,9 @@ type 接口类型名 interface{
     …
 } 
 ```
+* 类型断言，语法：`value, ok = x.(T)`，x：表示类型为interface{}的变量，T：表示断言x可能是的类型。
+* 该语法返回两个参数，第一个参数是x转化为T类型后的变量（也就是 value），第二个值是一个布尔值（也就是 ok），若为true则表示断言成功，为false则表示断言失败。
+
 ##### 注意事项/拓展
 * 侵入式接口（接口没了，子类报错）和非侵入是接口（接口没了，不影响代码，go语言中的接口是非侵入式的）
 
@@ -1198,7 +1201,7 @@ type 接口类型名 interface{
     //td := TDuck{name: "t唐老鸭"}
     //td.Speak()
     //td.Run()
-    // 使用2，接口类型变量
+    // 使用2，接口类型变量(可以理解为多态的体现)
     //var duck Duck
     //pduck:=PDuck{"黑子"}
     //tduck:=TDuck{"egon",1}
@@ -1207,10 +1210,111 @@ type 接口类型名 interface{
     //duck=tduck  //多态，同一类事务多种形态
     //duck.Run()
 	
+	// 3、类型断言
+    //var duck Duck =TDuck{"fanghao",1}
+    ////断言是TDuck类型
+    //v, ok := duck.(TDuck)
+    ////断言成功，ok是true，v就是TDuck结构体对象
+    //fmt.Println(v)
+    //fmt.Println(v.name)
+    //fmt.Println(ok)
+    //var v PDuck
+    //var ok bool
+    //v, ok = duck.(PDuck)
+    ////断言失败,ok是false，v是PDuck类型的空置，因为没有赋值
+    //fmt.Println(ok)
+    //fmt.Println(v)
+	
+	// 4、类型选择，通过switch，相比于大量的if 判断，更加优雅，可读性更好
+	// 方式1，定义，通过if 
+    //func tes(duck Duck){
+    //	if v,ok := duck.(TDuck);ok{
+    //		fmt.Println(ok)
+    //		fmt.Println("我是唐老鸭")
+    //		fmt.Println(v)
+    //	}else if v,ok := duck.(PDuck);ok {
+    //		fmt.Println("我是普通鸭子")
+    //		fmt.Println(v)
+    //	}
+    //}
+    // 方式2，定义，通过switch，类型选择
+    //func tes1(duck Duck) {
+    //	switch v:=duck.(type) {
+    //	case PDuck:
+    //		fmt.Println(v)
+    //		fmt.Println("我是普通鸭子")
+    //	case TDuck:
+    //		fmt.Println(v)
+    //		fmt.Println("我是唐老鸭")
+    //	}
+    //}
+	// 调用
+    //var p PDuck = PDuck{name: "普通鸭"}
+    //var p TDuck = TDuck{name: "t鸭"}
+    //tes(p)
+    //tes1(p)
+
+    // 5、空接口（没有任何方法，所有的数据类型都实现了空接口）
+	// 定义
+    //type Empty interface {
+    //}
+	// 类型选择
+    //func tes3(b Empty)  {
+    //	switch v:=b.(type) {
+    //	case string:
+    //		fmt.Println("我是字符串")
+    //		fmt.Println(v)
+    //	case int:
+    //		fmt.Println("我是int")
+    //		fmt.Println(v)
+    //	case [3]int:
+    //		fmt.Println("我是数组")
+    //		fmt.Println(v)
+    //	}
+    //}
+	// 使用
+    //var a int=10
+    //var b string="lqz"
+    //var c [3]int
+    //var e Empty  //空接口类型
+    //e=a
+    //e=b
+    //e=c
+    //fmt.Println(e)
+    //tes3(a)
+    //tes3(b)
+    //tes3(c)
+
+    // 6、匿名空接口，没有名字的空接口  一般用在形参上
+    //func tes4(b interface{})  {
+    //	fmt.Println(b)
+    //}
+	// 使用
+    //tes4(111)
+    //tes4("111")
+    //d := PDuck{name: "hhhh"}
+    //tes4(d)
+	
+	// 7、
+    //var a[3]Duck
+    //a[1]=PDuck{}
+    //a[2]=TDuck{}
+    //var b map[string]interface{}= make(map[string]interface{})
+    //b["name"]="lqz"
+    //b["age"]=19
+    //b["duck"]=PDuck{}
+    //fmt.Println(a)
+    //fmt.Println(b)
 	
 ```
 
+* 接口高级
+* 
 
+```go
+    // 1、 实现多个接口
+
+```
 
 
 
