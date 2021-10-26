@@ -731,7 +731,7 @@ for {
 * 切片类型的零值为 nil。一个 nil 切片的长度和容量为 0。可以使用 append 函数将值追加到 nil 切片。
 * 修改切片，会影响原数组，反之亦然（修改原数组，也会影响切片）
 * 切片自己不拥有任何数据。它只是底层数组的一种表示。对切片所做的任何修改都会反映在底层数组中。
-* func make（[]T，len，cap）[]T 通过传递类型，长度和容量来创建切片。容量是可选参数, 默认值为切片长度。make 函数创建一个数组，并返回引用该数组的切片。
+* `func make（[]T，len，cap）`[]T 通过传递类型，长度和容量来创建切片。容量是可选参数, 默认值为切片长度。make 函数创建一个数组，并返回引用该数组的切片。
 * 坑：slice或者array作为函数参数传递的时候，本质是传值而不是传引用。传值的过程复制一个新的切片，这个切片也指向原始变量的底层数组。（个人感觉称之为传切片可能比传值的表述更准确）。函数中无论是直接修改切片，还是append创建新的切片，都是基于共享切片底层数组的情况作为基础。也就是最外面的原始切片是否改变，取决于函数内的操作和切片本身容量。
 * 引用类型，空值是nil，当作参数传递（append有可能会出问题）
 ```go
@@ -1309,22 +1309,148 @@ type 接口类型名 interface{
 ```
 
 * 接口高级
-* 
-
+* 空接口的应用
+* 1、空接口作为函数的参数
+* 2、空接口作为map的值
+* 一个接口的值（简称接口值）是由一个具体类型和具体类型的值两部分组成的。这两部分分别称为接口的动态类型和动态值。
 ```go
     // 1、 实现多个接口
+    // 定义一个鸭子接口，Speak，Run方法
+    //type Duck interface {
+    //	Speak()
+    //	Run()
+    //}
+    //type Animal interface {
+    //	eat()
+    //	sleep()
+    //}
+    //// 普通鸭子
+    //type PDuck struct {
+    //	name string
+    //}
+    //// 唐老鸭
+    //type TDuck struct {
+    //	name string
+    //	age int
+    //}
+    //// 实现Duck接口
+    //func (p PDuck) Speak()  {
+    //	fmt.Println("普通鸭子嘎嘎叫")
+    //}
+    //func (p PDuck) Run()  {
+    //	fmt.Println("普通鸭子走")
+    //}
+    //func (p TDuck) Speak()  {
+    //	fmt.Println("唐老鸭说人话")
+    //}
+    //func (p TDuck) Run()  {
+    //	fmt.Println("唐老鸭跑路")
+    //}
+    ////唐老鸭实现Animal接口
+    //func (p TDuck)sleep()  {
+    //	fmt.Println("唐老鸭睡觉",p.name)
+    //}
+    //func (p TDuck)eat()  {
+    //	fmt.Println("唐老鸭吃东西",p.name)
+    //}
+	// 使用
+    //var t TDuck=TDuck{}
+    //var a Animal
+    //var d Duck
+    ////一旦转到某个接口上，只能使用接口的方法，自身属性和自身方法需要类型断言后才能使用
+    //a=t
+    //a.sleep()     //Animal的方法
+    //a.eat()       //Animal的方法
+    //d=t
+    //d.Speak()     //Duck的方法
+    //d.Run()       //Duck的方法
+
+    ////2 接口嵌套
+    //type Animal interface {
+    //	eat()
+    //}
+    //type Duck interface {
+    //	Animal	// 嵌套
+    //	speak()
+    //}
+    ////如果一个结构体实现duck接口
+    //type PDuck struct {
+    //	name string
+    //}
+    //func (p PDuck)speak()  {
+    //}
+    //func (p PDuck)eat()  {
+    //}
+	
+	// 接口的零值
+    //var a Animal
+    //fmt.Println(a)    // <nil>    是引用类型
+```
+---
+#### 自定义集合类型
+```go
+    //定义MySet类型
+    type MySet map[interface{}]bool
+    //判断元素是否存在
+    func (m MySet) isExist(a interface{}) bool {
+        return m[a]
+    }
+    //返回set长度
+    func (m MySet) len() int {
+        return len(m)
+    }
+    //设置值
+    func (m MySet) set(a interface{}) {
+        m[a] = true
+    }
+    //删除值
+    func (m MySet) delete(a interface{}) {
+        delete(m, a)
+    }
+	
+	// 测试
+	//创建一个set
+	var a MySet = make(MySet)
+    //相当于
+    //var a MySet = make(map[interface{}]bool)
+    //打印set的长度
+    fmt.Println(a.len())
+    //放入一个值
+    a.set(1)
+    //放入一个相同值
+    a.set(1)
+    a.set("fanghao")
+    a.set("fanghao")
+    a.set("fanghao")
+    a.set("fanghao22")
+    a.set("fanghao22")
+    a.set("fanghao2222")
+    //打印长度，还是1
+    //fmt.Println(a.len())
+    //判断1是否存在
+    //fmt.Println(a.isExist(2))
+    ////删除1
+    a.delete(1)
+    ////判断1是否存在
+    fmt.Println(a.isExist(1))
+    fmt.Println(a.len())
+    
+    for i,_:=range a{
+    fmt.Println(i)
+    }
+    
 
 ```
 
+#### 补充，make 和 new的区别
 
+* Go语言中的内建函数new和make是两个用于内存分配的原语（allocation primitives）。ew只分配内存，make用于slice，map，和channel的初始化。
+* new用来初始化变量并分配内存。它的第一个参数是一个类型，不是一个值，它的返回值是一个指向新分配类型零值的指针。
+  channel, func, map, slice等零值是nil。
 
-
-
-
-
-
-
-
+##### new
+* 这是一个用来分配内存的内建函数，但是与C++不一样的是，它并不初始化内存，只是将其置零。
+* 也就是说，new(T)会为T类型的新项目，分配被置零的存储，并且返回它的地址，一个类型为*T的值。在Go的术语中，其返回一个指向新分配的类型为T的指针，这个指针指向的内容的值为零（zero value）。注意并不是指针为零。
 
 
 
