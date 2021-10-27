@@ -1479,9 +1479,356 @@ type 接口类型名 interface{
 * make 返回值是”引用类型“，new 返回值是指针类型。
 
 
+#### 结构体取代类
+* Go 不支持类，而是提供了[结构体]。结构体中可以添加[方法]。这样可以将数据和操作数据的方法绑定在一起，实现与类相似的效果。
+```go
+    // 定义
+    //创建命名的结构体
+    type Person struct {
+        Name string
+        Age int
+        Sex string
+    }
+    
+    func New(name string,age int,sex string) Person {
+        return Person{name,age,sex}
+    }
+    
+    func (p Person)PrintName()  {
+        fmt.Println(p.Name)
+    }
+	
+	// main函数
+	per :=person.New("lqz",19,"男")  // 类似实例化，使用绑定方法new创建
+
+    //var per Person = new Person("lqz",19,"男")
+    fmt.Println(per)
+    per.PrintName()
+
+```
 
 
+### 7、并发
+* Go 编程语言原生支持并发。Go 使用 Go 协程（Goroutine） 和信道（Channel）来处理并发。
+```python
+并发（concurrency）和并行（parallellism）是：
+    解释一：并行是指两个或者多个事件在同一时刻发生；而并发是指两个或多个事件在同一时间间隔发生。
+    解释二：并行是在不同实体上的多个事件，并发是在同一实体上的多个事件。
+    解释三：并行是在多台处理器上同时处理多个任务。如 hadoop 分布式集群，并发是在一台处理器上“同时”处理多个任务。
+    所以并发编程的目标是充分的利用处理器的每一个核，以达到最高的处理性能。
 
+并行(parallel)：指在同一时刻，有多条指令在多个处理器上同时执行。所以无论从微观还是从宏观来看，二者都是一起执行的。
+
+并发(concurrency)：指在同一时刻只能有一条指令执行，但多个进程指令被快速的轮换执行，使得在宏观上具有多个进程同时执行的效果
+但在微观上并不是同时执行的，只是把时间分成若干段，使多个进程快速交替的执行。
+
+```
+```go
+并发：同一时间段内执行多个任务（你在用微信和两个女朋友聊天）。
+并行：同一时刻执行多个任务（你和你朋友都在用微信和女朋友聊天）。
+
+Go语言的并发通过goroutine实现。goroutine类似于线程，属于用户态的线程，我们可以根据需要创建成千上万个goroutine并发工作。
+    goroutine是由Go语言的运行时（runtime）调度完成，而线程是由操作系统调度完成。
+Go语言还提供channel在多个goroutine间进行通信。goroutine和channel是 Go 语言秉承的 CSP（Communicating Sequential Process）并发模式的重要实现基础。
+```
+
+### 8、GO协程（goruntine）
+* goroutine的概念类似于线程，但 goroutine是由Go的运行时（runtime）调度和管理的。Go程序会智能地将 goroutine 中的任务合理地分配给每个CPU。Go语言之所以被称为现代化的编程语言，就是因为它在语言层面已经内置了调度和上下文切换的机制。
+* Go 语言通过编译器运行时（runtime），从语言上支持了并发的特性。Go 语言的并发通过 goroutine 特性完成。goroutine 类似于线程，但是可以根据需要创建多个 goroutine 并发工作。goroutine 是由 Go 语言的运行时调度完成，而线程是由操作系统调度完成。
+* OS线程（操作系统线程）一般都有固定的**栈内存（通常为2MB）**,一个goroutine的栈在其生命周期开始时只有**很小的栈（典型情况下2KB）**，goroutine的栈不是固定的，他可以按需增大和缩小
+* **使用**,Go语言中使用goroutine非常简单，只需要在调用函数的时候在前面加上`go`关键字，就可以为一个函数创建一个goroutine。
+* 一个goroutine必定对应一个函数，可以创建多个goroutine去执行相同的函数。
+```
+//goroutine--->协程---2kb大小，100
+//线程----》几个m
+//go协程会复用线程
+// goroutine之间通信，通过 信道channel 通信
+//go推崇用信道通信，而不推崇用共享变量通信（锁，死锁）
+```
+* goroutine的优势(协程相比于线程的优势)
+```
+相比线程而言，Go 协程的成本极低。堆栈大小只有若干 kb，并且可以根据应用的需求进行增减。而线程必须指定堆栈的大小，其堆栈是固定不变的。
+Go 协程会复用（Multiplex）数量更少的 OS 线程。即使程序有数以千计的 Go 协程，也可能只有一个线程。如果该线程中的某一 Go 协程发生了阻塞（比如说等待用户输入），那么系统会再创建一个 OS 线程，并把其余 Go 协程都移动到这个新的 OS 线程。所有这一切都在运行时进行，作为程序员，我们没有直接面临这些复杂的细节，而是有一个简洁的 API 来处理并发。
+Go 协程使用信道（Channel）来进行通信。信道用于防止多个协程访问共享内存时发生竞态条件（Race Condition）。信道可以看作是 Go 协程之间通信的管道。我们会在下一教程详细讨论信道。
+```
+
+* **GMP模型**(GPM)
+* GPM是Go语言运行时（runtime）层面的实现，是go语言自己实现的一套调度系统。区别于操作系统调度OS线程。
+
+```
+    -G很好理解，就是个goroutine的，里面除了存放本goroutine信息外 还有与所在P的绑定等信息。
+    -P管理着一组goroutine队列，P里面会存储当前goroutine运行的上下文环境（函数指针，堆栈地址及地址边界），
+        P会对自己管理的goroutine队列做一些调度（比如把占用CPU时间较长的goroutine暂停、运行后续的goroutine等等）当自己的队列消费完了就去全局队列里取，如果全局队列里也消费完了会去其他P的队列里抢任务。
+    -M（machine）是Go运行时（runtime）对操作系统内核线程的虚拟， M与内核线程一般是一一映射的关系， 一个groutine最终是要放到M上执行的；
+
+    P与M一般也是一一对应的。他们关系是： P管理着一组G挂载在M上运行。
+        当一个G长久阻塞在一个M上时，runtime会新建一个M，阻塞G所在的P会把其他的G 挂载在新建的M上。
+        当旧的G阻塞完成或者认为其已经死掉时 回收旧的M。
+
+    P的个数是通过runtime.GOMAXPROCS设定（最大256），Go1.5版本之后默认为物理线程数。 
+        在并发量大的时候会增加一些P和M，但不会太多，切换太频繁的话得不偿失。
+
+    单从线程调度讲，Go语言相比起其他语言的优势在于OS线程是由OS内核来调度的，
+        goroutine则是由Go运行时（runtime）自己的调度器调度的，
+        这个调度器使用一个称为m:n调度的技术（复用/调度m个goroutine到n个OS线程）。 
+        其一大特点是goroutine的调度是在用户态下完成的， 不涉及内核态与用户态之间的频繁切换，
+        包括内存的分配与释放，都是在用户态维护着一块大的内存池， 不直接调用系统的malloc函数（除非内存池需要改变），
+        成本比调度OS线程低很多。 另一方面充分利用了多核的硬件资源，近似的把若干goroutine均分在物理线程上，
+        再加上本身goroutine的超轻量，以上种种保证了go调度方面的性能。
+```
+
+* **GOMAXPROCS**
+```go
+    Go运行时的调度器使用GOMAXPROCS参数来确定需要使用多少个OS线程来同时执行Go代码。默认值是机器上的CPU核心数。
+    Go1.5版本之前，默认使用的是单核心执行。Go1.5版本之后，默认使用全部的CPU逻辑核心数。
+    
+    //设置P的大小，认为是cpu核数即可
+	runtime.GOMAXPROCS(6)
+	fmt.Println("主线程开始执行")
+	go func() {for  {fmt.Println("xxxx")}}()
+	time.Sleep(10*time.Second)
+	fmt.Println("主线程结束执行")
+```
+
+
+* Go语言中的操作系统线程和goroutine的关系：
+```
+    一个操作系统线程对应用户态多个goroutine。
+    go程序可以同时使用多个操作系统线程。
+    goroutine和OS线程是多对多的关系，即m:n。(用户线程和操作系统线程)
+```
+
+### 9、信道**channel**
+
+* Go语言的并发模型是CSP（Communicating Sequential Processes），提倡通过通信共享内存而不是通过共享内存而实现通信。
+* Go 语言中的通道（channel）是一种特殊的类型。通道像一个传送带或者队列，总是遵循先入先出（First In First Out）的规则，保证收发数据的顺序。每一个通道都是一个具体类型的导管，也就是声明channel的时候需要为其指定元素类型。
+
+* channel是一种类型，一种引用类型。声明通道类型的格式如下：
+```
+    var 变量 chan 元素类型
+    var ch1 chan int   // 声明一个传递整型的通道
+    var ch2 chan bool  // 声明一个传递布尔型的通道
+    var ch3 chan []int // 声明一个传递int切片的通道
+```
+* 创建channel
+* 通道是引用类型，通道类型的空值是nil。声明的通道后需要使用make函数初始化之后才能使用。
+* 当做参数传递时，不需要取地址，改的就是原来的
+```
+    make(chan 元素类型, [缓冲大小])     // channel的缓冲大小是可选的。
+    ch4 := make(chan int)
+    ch5 := make(chan bool)
+    ch6 := make(chan []int)
+```
+
+* channel操作
+通道有发送（send）、接收(receive）和关闭（close）三种操作。
+发送和接收都使用<-符号。
+```go
+    // 1、定义
+    ch := make(chan int)
+    // 2、放值(发送)
+	ch <- 100
+	// 3、取值（接收）
+    x := <- ch // 从ch中接收值并赋值给变量x
+    <-ch       // 从ch中接收值，忽略结果
+	// 4、关闭
+	//我们通过调用内置的close函数来关闭通道。
+	close(ch)
+```
+* 无缓冲的通道
+发送和接受必须都要有，只有一方都会发生死锁（能通过编译，但是执行会报错，如下）
+使用无缓冲通道进行通信将导致发送和接收的goroutine同步化。因此，无缓冲通道也被称为同步通道。
+```go
+	ch := make(chan int)
+    //ch <- 10      // 只放置
+    <- ch           //不放置，只取
+    fmt.Println("发送成功")
+```
+* 有缓冲的通道
+只要通道的容量大于零(无缓冲信道数字是0)，那么该通道就是有缓冲的通道，通道的容量表示通道中能存放元素的数量。
+```go
+	ch := make(chan int, 1)
+    ch <- 10 
+    fmt.Println("发送成功")
+	
+	// 2、
+    var c chan int =make(chan int,2)  //无缓冲信道数字是0
+    c<-1
+    c<-2
+    //c<-7  //死锁
+    <-c
+    <-c
+    //<-c // 取空了，死锁（一个goroutine中会出现）
+```
+* for range从通道循环取值
+* for循环循环信道，如果不关闭会报死锁，如果关闭了，放不进去，循环结束
+```go
+	ch1,ch2 := make(chan int),make(chan int)
+    // 开启goroutine将0~10的数发送到ch1中
+    go func() {
+    	for i := 1; i < 10; i++ {ch1 <- i}
+    	close(ch1)}()
+    // 开启goroutine从ch1中接收值，并将该值的平方发送到ch2中
+    go func() {
+    	for {i, ok := <-ch1 // 通道关闭后再取值ok=false
+    		if !ok {break}
+    		ch2 <- i * i}
+    	close(ch2)}()
+    // 在主goroutine中从ch2中接收值打印
+    for i := range ch2 { // 通道关闭后会退出for range循环
+    	fmt.Println(i)
+    }
+```
+* 长度和容量
+我们可以使用内置的**`len`函数**获取通道内元素的数量，使用**`cap`函数**获取通道的容量
+
+* 单向信道
+* `chan<- int`是一个**只写**单向通道（只能对其写入int类型值），可以对其执行发送操作但是**不能执行接收**操作；
+* `<-chan int`是一个**只读**单向通道（只能从其读取int类型值），可以对其执行接收操作但是**不能执行发送**操作。
+```go
+    func sendData(sendch chan<- int) {
+        sendch <- 10
+    }
+```
+
+* **WaitGroup** (等待所有goroutine执行完成)
+```go
+
+    var wg sync.WaitGroup   //没有初始化，值类型，当做参数传递，需要取地址
+    //fmt.Println(wg)
+    for i:=0;i<10;i++ {
+        wg.Add(1) //启动一个goroutine，add加1
+        go func(i int,wg *sync.WaitGroup)  {    // 匿名函数
+            fmt.Println("started Goroutine ", i)
+            time.Sleep(2 * time.Second)
+            fmt.Printf("Goroutine %d ended\n", i)
+            //一旦有一个完成，减一
+            wg.Done()
+        }(i,&wg)
+    }
+    wg.Wait() // 一直阻塞在这，直到调用了10个done，计数器减到零
+
+```
+* **worker pool**（goroutine池）
+在工作中我们通常会使用可以指定启动的goroutine数量–worker pool模式，控制goroutine的数量，防止goroutine泄漏和暴涨。
+
+* 注意事项
+  发送与接收默认是阻塞的。这是什么意思？当把数据发送到信道时，程序控制会在发送数据的语句处发生阻塞，直到有其它 Go 协程从信道读取到数据，才会解除阻塞。与此类似，当读取信道的数据时，如果没有其它的协程把数据写入到这个信道，那么读取过程就会一直阻塞着。
+  关于关闭通道需要注意的事情是，只有在通知接收方goroutine所有的数据都发送完毕的时候才需要关闭通道。
+  通道是可以被垃圾回收机制回收的，它和关闭文件是不一样的，在结束操作之后关闭文件是必须要做的，但关闭通道不是必须的。
+  关闭后的通道有以下特点：
+  对一个关闭的通道再发送值就会导致panic。
+  对一个关闭的通道进行接收会一直获取值直到通道为空。
+  对一个关闭的并且没有值的通道执行接收操作会得到对应类型的零值。
+  关闭一个已经关闭的通道会导致panic（主动抛出异常）。
+
+### **select**多路复用
+select 语句用于在多个发送/接收信道操作中进行选择。
+select 语句会一直阻塞，直到发送/接收操作准备就绪。
+如果有多个信道操作准备完毕，select 会随机地选取其中之一执行。
+该语法与 switch 类似，所不同的是，这里的每个 case 语句都是信道操作。
+```go
+    // 1、基本使用
+    output1 := make(chan string)
+    output2 := make(chan string)
+    go func(ch chan string) {		// 匿名函数server1
+    	time.Sleep(6 * time.Second)
+    	ch <- "from server1"}(output1)
+    go func(ch chan string) {		// 匿名函数server2
+    	time.Sleep(3 * time.Second)
+    	ch <- "from server2"}(output2)
+    select {
+    case s1 := <-output1:
+    	fmt.Println(s1)
+    case s2 := <-output2:
+    	fmt.Println(s2)
+    default:        //2、默认情况
+    	// 可以干其他事，模拟非阻塞式io
+    	fmt.Println("no value received")
+    }
+	
+	// 2、默认情况，如上
+    default:
+        // 可以干其他事，模拟非阻塞式io
+        fmt.Println("no value received")
+    
+    // 3、死锁与默认情况：由于没有 Go 协程向该信道写入数据，因此 select 语句会一直阻塞，导致死锁。
+	ch := make(chan string)
+	select {
+        case <-ch:
+		//default:      //如果存在默认情况，就不会发生死锁，因为在没有其他 case 准备就绪时，会执行默认情况。
+		//    fmt.Println("default case executed")
+        //}
+    }
+	
+	// 4、随机选取：如果多个case同时满足，select会随机选择一个。
+    output1 := make(chan string)
+    output2 := make(chan string)
+    go func(ch chan string) {		// 匿名函数server1
+    	ch <- "from server1"}(output1)
+    go func(ch chan string) {		// 匿名函数server2
+    	ch <- "from server2"}(output2)
+    time.Sleep(1 * time.Second)
+    select {
+    case s1 := <-output1:
+    	fmt.Println(s1)
+    case s2 := <-output2:
+    	fmt.Println(s2)
+    }
+	
+	// 5、空 select：select 语句没有任何 case，因此它会一直阻塞，导致死锁。
+	select {}
+```
+
+### **mutex**(并发安全和锁)
+* **临界区（Critical Section）**的概念。当程序并发地运行时，多个 Go 协程不应该同时访问那些修改共享资源的代码。这些修改共享资源的代码称为临界区。
+* 使用锁的场景：多个goroutine通过共享内存在实现数据通信
+* 有时候在Go代码中可能会存在多个goroutine同时操作一个资源（临界区），这种情况会发生**竞态问题（数据竞态）**
+* 如果在任意时刻只允许一个 Go 协程访问临界区，那么就可以避免竞态条件。而使用 Mutex 可以达到这个目的
+```go
+    var x  = 0  //要放在全局，各个goroutine都可以拿到并且操作
+	var w sync.WaitGroup
+	var m sync.Mutex  //是个值类型，函数传递需要传地址
+	//fmt.Println(m)  //{0 0}
+	for i := 0; i < 1000; i++ {
+		w.Add(1)
+		go func(wg *sync.WaitGroup,m *sync.Mutex) {
+			m.Lock()
+			x = x + 1
+			m.Unlock()
+			wg.Done()
+		}(&w,&m)
+	}
+	w.Wait()
+	fmt.Println("final value of x", x)
+```
+* 通过信道来做
+```go
+    var x  = 0  //要放在全局，各个goroutine都可以拿到并且操作
+	var w sync.WaitGroup
+	ch := make(chan bool, 1)  //定义了一个有缓存大小为1的信道
+	for i := 0; i < 1000; i++ {
+		w.Add(1)
+		go func(wg *sync.WaitGroup, ch chan bool) {
+			ch <- true  // 缓冲信道放满了，就会阻塞
+			x = x + 1
+			<- ch
+			wg.Done()
+		}(&w, ch)
+	}
+	w.Wait()
+	fmt.Println("final value of x", x)
+```
+* Mutex vs 信道
+  1、不同goroutine之间传递数据：共享变量，  通过信道
+  2、如果是修改共享变量，建议加锁
+  3、如果是协程之间通信，用信道
+
+
+### 异常处理
+* defer:延迟执行,并且即便程序出现严重错误，也会执行
+* panic：主动抛出异常 raise
+* recover：恢复程序，继续执行
 
 
 
