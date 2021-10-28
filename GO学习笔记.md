@@ -1691,24 +1691,6 @@ Go 协程使用信道（Channel）来进行通信。信道用于防止多个协�
     }
 ```
 
-* **WaitGroup** (等待所有goroutine执行完成)
-```go
-
-    var wg sync.WaitGroup   //没有初始化，值类型，当做参数传递，需要取地址
-    //fmt.Println(wg)
-    for i:=0;i<10;i++ {
-        wg.Add(1) //启动一个goroutine，add加1
-        go func(i int,wg *sync.WaitGroup)  {    // 匿名函数
-            fmt.Println("started Goroutine ", i)
-            time.Sleep(2 * time.Second)
-            fmt.Printf("Goroutine %d ended\n", i)
-            //一旦有一个完成，减一
-            wg.Done()
-        }(i,&wg)
-    }
-    wg.Wait() // 一直阻塞在这，直到调用了10个done，计数器减到零
-
-```
 * **worker pool**（goroutine池）
 在工作中我们通常会使用可以指定启动的goroutine数量–worker pool模式，控制goroutine的数量，防止goroutine泄漏和暴涨。
 
@@ -1819,6 +1801,25 @@ select 语句会一直阻塞，直到发送/接收操作准备就绪。
 	w.Wait()
 	fmt.Println("final value of x", x)
 ```
+* **WaitGroup** (等待所有goroutine执行完成)
+```go
+
+    var wg sync.WaitGroup   //没有初始化，值类型，当做参数传递，需要取地址
+    //fmt.Println(wg)
+    for i:=0;i<10;i++ {
+        wg.Add(1) //启动一个goroutine，add加1
+        go func(i int,wg *sync.WaitGroup)  {    // 匿名函数
+            fmt.Println("started Goroutine ", i)
+            time.Sleep(2 * time.Second)
+            fmt.Printf("Goroutine %d ended\n", i)
+            //一旦有一个完成，减一
+            wg.Done()
+        }(i,&wg)
+    }
+    wg.Wait() // 一直阻塞在这，直到调用了10个done，计数器减到零
+
+```
+
 * Mutex vs 信道
   1、不同goroutine之间传递数据：共享变量，  通过信道
   2、如果是修改共享变量，建议加锁
