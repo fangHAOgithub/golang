@@ -1695,6 +1695,7 @@ Go 协程使用信道（Channel）来进行通信。信道用于防止多个协�
 在工作中我们通常会使用可以指定启动的goroutine数量–worker pool模式，控制goroutine的数量，防止goroutine泄漏和暴涨。
 
 * 注意事项
+```
   发送与接收默认是阻塞的。这是什么意思？当把数据发送到信道时，程序控制会在发送数据的语句处发生阻塞，直到有其它 Go 协程从信道读取到数据，才会解除阻塞。与此类似，当读取信道的数据时，如果没有其它的协程把数据写入到这个信道，那么读取过程就会一直阻塞着。
   关于关闭通道需要注意的事情是，只有在通知接收方goroutine所有的数据都发送完毕的时候才需要关闭通道。
   通道是可以被垃圾回收机制回收的，它和关闭文件是不一样的，在结束操作之后关闭文件是必须要做的，但关闭通道不是必须的。
@@ -1703,12 +1704,15 @@ Go 协程使用信道（Channel）来进行通信。信道用于防止多个协�
   对一个关闭的通道进行接收会一直获取值直到通道为空。
   对一个关闭的并且没有值的通道执行接收操作会得到对应类型的零值。
   关闭一个已经关闭的通道会导致panic（主动抛出异常）。
+ ```
 
 ### **select**多路复用
+```
 select 语句用于在多个发送/接收信道操作中进行选择。
 select 语句会一直阻塞，直到发送/接收操作准备就绪。
 如果有多个信道操作准备完毕，select 会随机地选取其中之一执行。
 该语法与 switch 类似，所不同的是，这里的每个 case 语句都是信道操作。
+```
 ```go
     // 1、基本使用
     output1 := make(chan string)
@@ -1763,7 +1767,7 @@ select 语句会一直阻塞，直到发送/接收操作准备就绪。
 ```
 
 ### **mutex**(并发安全和锁)
-* **临界区（Critical Section）**的概念。当程序并发地运行时，多个 Go 协程不应该同时访问那些修改共享资源的代码。这些修改共享资源的代码称为临界区。
+* **临界区**（Critical Section）的概念。当程序并发地运行时，多个 Go 协程不应该同时访问那些修改共享资源的代码。这些修改共享资源的代码称为临界区。
 * 使用锁的场景：多个goroutine通过共享内存在实现数据通信
 * 有时候在Go代码中可能会存在多个goroutine同时操作一个资源（临界区），这种情况会发生**竞态问题（数据竞态）**
 * 如果在任意时刻只允许一个 Go 协程访问临界区，那么就可以避免竞态条件。而使用 Mutex 可以达到这个目的
@@ -1828,11 +1832,70 @@ select 语句会一直阻塞，直到发送/接收操作准备就绪。
 
 ### 异常处理
 * defer:延迟执行,并且即便程序出现严重错误，也会执行
+```go
+	defer fmt.Println("我最后执行")  //注册一下，并不执行，等main函数执行完了以后，从下往上执行defer定义的东西
+	defer fmt.Println("我倒数第二个打印")
+	fmt.Println("我先执行")
+	//var a []int
+	//fmt.Println(a[10])
+```
 * panic：主动抛出异常 raise
 * recover：恢复程序，继续执行
+```go
+  defer func() {
+      if error:=recover();error!=nil{
+          //except的东西
+          fmt.Println(error)
+      }
+      //相当于finally，无论是否出错，都会执行
+  }()
+  可能会错误的代码
 
+```
 
+```go
 
+    //实例
+    //定义三个函数
+    func f1(){
+      fmt.Println("f1 f1")
+    }
+    func f2(){
+      defer func() {   //这个匿名函数永远会执行
+          //error:=recover()  //恢复程序继续执行
+          //fmt.Println(error) //如果没有错误，执行recover会返回nil    如果有错误，，执行recover会放错误信息
+          if error:=recover();error!=nil{
+              //表示出错了，打印一下错误信息，程序恢复了，继续执行
+              fmt.Println(error)
+          }
+          // 相当于finally
+          fmt.Println("我永远会执行，不管是否出错")
+      }()
+      fmt.Println("f2 f2")
+      //panic("主动抛出错误")
+    }
+    func f3(){
+      fmt.Println("f3 f3")
+    }
+    
+    //main函数
+    f1()
+    f2()
+    f3()
+```
+```go
+
+	f, err := os.Open("/test.txt")
+	if err != nil {     // 单独处理每一个错误
+		fmt.Println(err)
+		return
+	}
+	if err != nil {     // 单独处理每一个错误
+		fmt.Println(err)
+		return
+	}
+	fmt.Println(f.Name(), "opened successfully")
+```
 
 
 
