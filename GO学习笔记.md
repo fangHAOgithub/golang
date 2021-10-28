@@ -1898,10 +1898,67 @@ select 语句会一直阻塞，直到发送/接收操作准备就绪。
 ```
 
 
+### 反射
+* 变量的内在机制
+```go
+Go语言中的变量是分为两部分的:
+类型信息：预先定义好的元信息。
+值信息：程序运行过程中可动态变化的。
+* 反射
+```
+```go
+1
+在Go语言的反射机制中，任何接口值都由是一个具体类型和具体类型的值两部分组成的。 
+在Go语言中反射的相关功能由内置的reflect包提供，任意接口值在反射中都可以理解为由reflect.Type和reflect.Value两部分组成，
+并且reflect包提供了reflect.TypeOf和reflect.ValueOf两个函数来获取任意对象的Value和Type。
+
+2
+使用reflect.TypeOf()函数可以获得任意值的类型对象（reflect.Type），程序通过类型对象可以访问任意值的类型信息。
+```
 
 
+* 大白话，编译型语言，很少会用到反射的概念，效率低下？尽可能的不要使用
+* 反射是 Go 语言中非常强大和高级的概念，我们应该小心谨慎地使用它。使用反射编写清晰和可维护的代码是十分困难的。
+* 你应该尽可能避免使用它，只在必须用到它时，才使用反射。
+* 原因
+```go
+1、基于反射的代码是极其脆弱的，反射中的类型错误会在真正运行的时候才会引发panic，那很可能是在代码写完的很长时间之后。
+2、大量使用反射的代码通常难以理解。
+3、反射的性能低下，基于反射实现的代码通常比正常代码运行速度慢一到两个数量级。
+```
 
+### 文件读写
 
+* 文件
+os.Open()函数能够打开一个文件，返回一个*File和一个err。对得到的文件实例调用close()方法能够关闭文件。
+* 读取文件，通过`file.Read()`
+```go
+基本使用
+    定义
+    func (f *File) Read(b []byte) (n int, err error)
+    它接收一个字节切片，返回读取的字节数和可能的具体错误，读到文件末尾时会返回0和io.EOF
+    // 只读方式打开当前目录下的main.go文件
+    file, err := os.Open("./main.go")
+    if err != nil {
+        fmt.Println("open file failed!, err:", err)
+        return
+    }
+    defer file.Close()
+    // 使用Read方法读取数据
+    var tmp = make([]byte, 128)
+    n, err := file.Read(tmp)
+    if err == io.EOF {
+        fmt.Println("文件读完了")
+        return
+    }
+    if err != nil {
+        fmt.Println("read file failed, err:", err)
+        return
+    }
+    fmt.Printf("读取了%d字节数据\n", n)
+    fmt.Println(string(tmp[:n]))
+```
+* **bufio**读取文件
 
 
 
